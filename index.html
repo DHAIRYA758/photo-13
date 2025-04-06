@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Photo Extractor</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: black;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+    h1 {
+      margin-top: 30px;
+      font-size: 2.5rem;
+      color: white;
+    }
+    .container {
+      margin-top: 50px;
+    }
+    input[type="text"] {
+      padding: 10px;
+      font-size: 1rem;
+      width: 80%;
+      max-width: 500px;
+      border: none;
+      border-radius: 5px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 5px;
+      margin-left: 10px;
+      background-color: #00bcd4;
+      color: white;
+      cursor: pointer;
+    }
+    .images {
+      margin-top: 30px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+    .images img {
+      max-width: 200px;
+      border: 2px solid white;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Image Extractor</h1>
+  <!-- Removed logo, Lisco (red), and Pvt. Ltd (white) here -->
+  
+  <div class="container">
+    <input type="text" id="urlInput" placeholder="Paste your URL here">
+    <button onclick="extractImages()">Extract</button>
+    <div class="images" id="imageContainer"></div>
+  </div>
+
+  <script>
+    function extractImages() {
+      const url = document.getElementById("urlInput").value;
+      if (!url) return;
+
+      fetch("https://api.allorigins.win/get?url=" + encodeURIComponent(url))
+        .then(response => response.json())
+        .then(data => {
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(data.contents, "text/html");
+          const images = doc.querySelectorAll("img");
+          const imageContainer = document.getElementById("imageContainer");
+          imageContainer.innerHTML = "";
+
+          images.forEach(img => {
+            const src = img.getAttribute("src");
+            if (src && !src.startsWith("data:")) {
+              const imgElement = document.createElement("img");
+              imgElement.src = src.startsWith("http") ? src : new URL(src, url).href;
+              imageContainer.appendChild(imgElement);
+            }
+          });
+        })
+        .catch(err => {
+          console.error("Error:", err);
+          alert("Could not fetch images from the URL.");
+        });
+    }
+  </script>
+</body>
+</html>
